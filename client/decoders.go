@@ -26,6 +26,30 @@ var (
 	groupLeaveLock = new(sync.Mutex)
 )
 
+var decoders = map[string]func(*QQClient, uint16, []byte) (interface{}, error){
+	"wtlogin.login":                            decodeLoginResponse,
+	"StatSvc.register":                         decodeClientRegisterResponse,
+	"StatSvc.ReqMSFOffline":                    decodeMSFOfflinePacket,
+	"MessageSvc.PushNotify":                    decodeSvcNotify,
+	"OnlinePush.PbPushGroupMsg":                decodeGroupMessagePacket,
+	"OnlinePush.ReqPush":                       decodeOnlinePushReqPacket,
+	"OnlinePush.PbPushTransMsg":                decodeOnlinePushTransPacket,
+	"ConfigPushSvc.PushReq":                    decodePushReqPacket,
+	"MessageSvc.PbGetMsg":                      decodeMessageSvcPacket,
+	"MessageSvc.PushForceOffline":              decodeForceOfflinePacket,
+	"friendlist.getFriendGroupList":            decodeFriendGroupListResponse,
+	"friendlist.GetTroopListReqV2":             decodeGroupListResponse,
+	"friendlist.GetTroopMemberListReq":         decodeGroupMemberListResponse,
+	"ImgStore.GroupPicUp":                      decodeGroupImageStoreResponse,
+	"PttStore.GroupPttUp":                      decodeGroupPttStoreResponse,
+	"LongConn.OffPicUp":                        decodeOffPicUpResponse,
+	"ProfileService.Pb.ReqSystemMsgNew.Group":  decodeSystemMsgGroupPacket,
+	"ProfileService.Pb.ReqSystemMsgNew.Friend": decodeSystemMsgFriendPacket,
+	"MultiMsg.ApplyUp":                         decodeMultiApplyUpResponse,
+	"MultiMsg.ApplyDown":                       decodeMultiApplyDownResponse,
+	"OidbSvc.0x6d6_2":                          decodeOIDB6d6Response,
+}
+
 func decodeLoginResponse(c *QQClient, _ uint16, payload []byte) (interface{}, error) {
 	reader := binary.NewReader(payload)
 	reader.ReadUInt16() // sub command
@@ -723,6 +747,7 @@ func decodeMSFOfflinePacket(c *QQClient, _ uint16, _ []byte) (interface{}, error
 	if c.Online {
 		c.lastLostMsg = "服务器端强制下线."
 		c.Online = false
+		c.Conn.Close()
 	}
 	return nil, nil
 }

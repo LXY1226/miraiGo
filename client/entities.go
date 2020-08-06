@@ -116,7 +116,7 @@ type (
 		NewPermission MemberPermission
 	}
 
-	ClientDisconnectedEvent struct {
+	DisconnectedEvent struct {
 		Message string
 	}
 

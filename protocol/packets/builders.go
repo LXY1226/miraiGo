@@ -7,10 +7,10 @@ import (
 
 func BuildLoginPacket(uin int64, bodyType byte, key, body, extraData []byte) []byte {
 	w := binary.NewWriter()
-	w.WriteIntLvPacket(4, func(w *binary.Writer) {
+	w.WriteIntLvPacket(func(w *binary.Writer) {
 		w.WriteUInt32(0x00_00_00_0A)
 		w.WriteByte(bodyType)
-		w.WriteIntLvPacket(4, func(w *binary.Writer) {
+		w.WriteIntLvPacket(func(w *binary.Writer) {
 			w.Write(extraData)
 		})
 		w.WriteByte(0x00)
@@ -26,7 +26,7 @@ func BuildLoginPacket(uin int64, bodyType byte, key, body, extraData []byte) []b
 
 func BuildUniPacket(uin int64, seq uint16, commandName string, bodyType byte, sessionId, extraData, key, body []byte) []byte {
 	w := binary.NewWriter()
-	w.WriteIntLvPacket(4, func(w *binary.Writer) {
+	w.WriteIntLvPacket(func(w *binary.Writer) {
 		w.WriteUInt32(0x0B)
 		w.WriteByte(bodyType)
 		w.WriteUInt32(uint32(seq))

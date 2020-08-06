@@ -39,7 +39,6 @@ type QQClient struct {
 	RandomKey               []byte
 	Conn                    net.Conn
 
-	decoders map[string]func(*QQClient, uint16, []byte) (interface{}, error)
 	handlers sync.Map
 	server   *net.TCPAddr
 
@@ -102,37 +101,14 @@ func NewClientMd5(uin int64, passwordMd5 [16]byte) *QQClient {
 		SequenceId:              0x3635,
 		RandomKey:               make([]byte, 16),
 		OutGoingPacketSessionId: []byte{0x02, 0xB0, 0x5B, 0x8B},
-		decoders: map[string]func(*QQClient, uint16, []byte) (interface{}, error){
-			"wtlogin.login":                            decodeLoginResponse,
-			"StatSvc.register":                         decodeClientRegisterResponse,
-			"StatSvc.ReqMSFOffline":                    decodeMSFOfflinePacket,
-			"MessageSvc.PushNotify":                    decodeSvcNotify,
-			"OnlinePush.PbPushGroupMsg":                decodeGroupMessagePacket,
-			"OnlinePush.ReqPush":                       decodeOnlinePushReqPacket,
-			"OnlinePush.PbPushTransMsg":                decodeOnlinePushTransPacket,
-			"ConfigPushSvc.PushReq":                    decodePushReqPacket,
-			"MessageSvc.PbGetMsg":                      decodeMessageSvcPacket,
-			"MessageSvc.PushForceOffline":              decodeForceOfflinePacket,
-			"friendlist.getFriendGroupList":            decodeFriendGroupListResponse,
-			"friendlist.GetTroopListReqV2":             decodeGroupListResponse,
-			"friendlist.GetTroopMemberListReq":         decodeGroupMemberListResponse,
-			"ImgStore.GroupPicUp":                      decodeGroupImageStoreResponse,
-			"PttStore.GroupPttUp":                      decodeGroupPttStoreResponse,
-			"LongConn.OffPicUp":                        decodeOffPicUpResponse,
-			"ProfileService.Pb.ReqSystemMsgNew.Group":  decodeSystemMsgGroupPacket,
-			"ProfileService.Pb.ReqSystemMsgNew.Friend": decodeSystemMsgFriendPacket,
-			"MultiMsg.ApplyUp":                         decodeMultiApplyUpResponse,
-			"MultiMsg.ApplyDown":                       decodeMultiApplyDownResponse,
-			"OidbSvc.0x6d6_2":                          decodeOIDB6d6Response,
-		},
-		sigInfo:                &loginSigInfo{},
-		requestPacketRequestId: 1921334513,
-		groupSeq:               22911,
-		friendSeq:              22911,
-		highwayApplyUpSeq:      77918,
-		ksid:                   []byte("|454001228437590|A8.2.7.27f6ea96"),
-		eventHandlers:          &eventHandlers{},
-		groupListLock:          new(sync.Mutex),
+		sigInfo:                 &loginSigInfo{},
+		requestPacketRequestId:  1921334513,
+		groupSeq:                22911,
+		friendSeq:               22911,
+		highwayApplyUpSeq:       77918,
+		ksid:                    []byte("|454001228437590|A8.2.7.27f6ea96"),
+		eventHandlers:           &eventHandlers{},
+		groupListLock:           new(sync.Mutex),
 	}
 	rand.Read(cli.RandomKey)
 	return cli
@@ -788,15 +764,16 @@ func (c *QQClient) netLoop() {
 			}
 		}
 		retry = 0
-		//fmt.Println(pkt.CommandName)
+		fmt.Println(pkt.CommandName)
 		go func() {
 			defer func() {
 				if pan := recover(); pan != nil {
 					//
 				}
 			}()
-			decoder, ok := c.decoders[pkt.CommandName]
+			decoder, ok := decoders[pkt.CommandName]
 			if !ok {
+				log.Print("Unknown Command", pkt.CommandName)
 				if f, ok := c.handlers.Load(pkt.SequenceId); ok {
 					c.handlers.Delete(pkt.SequenceId)
 					f.(func(i interface{}, err error))(nil, nil)
@@ -817,7 +794,7 @@ func (c *QQClient) netLoop() {
 	if c.lastLostMsg == "" {
 		c.lastLostMsg = "Connection lost."
 	}
-	c.dispatchDisconnectEvent(&ClientDisconnectedEvent{Message: c.lastLostMsg})
+	c.dispatchDisconnectEvent(&DisconnectedEvent{Message: c.lastLostMsg})
 }
 
 func (c *QQClient) startHeartbeat() {

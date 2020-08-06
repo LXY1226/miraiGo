@@ -20,7 +20,7 @@ type eventHandlers struct {
 	groupInvitedHandlers        []func(*QQClient, *GroupInvitedRequest)
 	joinRequestHandlers         []func(*QQClient, *UserJoinGroupRequest)
 	friendRequestHandlers       []func(*QQClient, *NewFriendRequest)
-	disconnectHandlers          []func(*QQClient, *ClientDisconnectedEvent)
+	disconnectHandlers          []func(*QQClient, *DisconnectedEvent)
 	groupMessageReceiptHandlers sync.Map
 }
 
@@ -88,7 +88,7 @@ func (c *QQClient) OnNewFriendRequest(f func(*QQClient, *NewFriendRequest)) {
 	c.eventHandlers.friendRequestHandlers = append(c.eventHandlers.friendRequestHandlers, f)
 }
 
-func (c *QQClient) OnDisconnected(f func(*QQClient, *ClientDisconnectedEvent)) {
+func (c *QQClient) OnDisconnected(f func(*QQClient, *DisconnectedEvent)) {
 	c.eventHandlers.disconnectHandlers = append(c.eventHandlers.disconnectHandlers, f)
 }
 
@@ -267,7 +267,7 @@ func (c *QQClient) dispatchNewFriendRequest(r *NewFriendRequest) {
 	}
 }
 
-func (c *QQClient) dispatchDisconnectEvent(e *ClientDisconnectedEvent) {
+func (c *QQClient) dispatchDisconnectEvent(e *DisconnectedEvent) {
 	if e == nil {
 		return
 	}

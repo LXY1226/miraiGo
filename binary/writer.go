@@ -1,16 +1,16 @@
 package binary
 
 import (
-	"bytes"
 	"encoding/binary"
+	"fmt"
+	"log"
 )
 
-type Writer struct {
-	buf *bytes.Buffer
-}
+type Writer []byte
 
 func NewWriter() *Writer {
-	return &Writer{buf: new(bytes.Buffer)}
+	b := make([]byte, 64)[:0]
+	return (*Writer)(&b)
 }
 
 func NewWriterF(f func(writer *Writer)) []byte {
@@ -20,35 +20,31 @@ func NewWriterF(f func(writer *Writer)) []byte {
 }
 
 func (w *Writer) Write(b []byte) {
-	w.buf.Write(b)
+	*w = append(*w, b...)
 }
 
 func (w *Writer) WriteByte(b byte) {
-	w.buf.WriteByte(b)
+	*w = append(*w, b)
 }
 
 func (w *Writer) WriteUInt16(v uint16) {
-	b := make([]byte, 2)
-	binary.BigEndian.PutUint16(b, v)
-	w.Write(b)
+	*w = append(*w, []byte{0, 0}...)
+	binary.BigEndian.PutUint16((*w)[len(*w)-2:], v)
 }
 
 func (w *Writer) WriteUInt32(v uint32) {
-	b := make([]byte, 4)
-	binary.BigEndian.PutUint32(b, v)
-	w.Write(b)
+	*w = append(*w, []byte{0, 0, 0, 0}...)
+	binary.BigEndian.PutUint32((*w)[len(*w)-4:], v)
 }
 
 func (w *Writer) WriteUInt64(v uint64) {
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, v)
-	w.Write(b)
+	*w = append(*w, []byte{0, 0, 0, 0, 0, 0, 0, 0}...)
+	binary.BigEndian.PutUint64((*w)[len(*w)-8:], v)
 }
 
 func (w *Writer) WriteString(v string) {
-	payload := []byte(v)
-	w.WriteUInt32(uint32(len(payload) + 4))
-	w.Write(payload)
+	w.WriteUInt32(uint32(len(v) + 4))
+	*w = append(*w, v...)
 }
 
 func (w *Writer) WriteStringShort(v string) {
@@ -69,16 +65,15 @@ func (w *Writer) EncryptAndWrite(key []byte, data []byte) {
 	w.Write(ed)
 }
 
-func (w *Writer) WriteIntLvPacket(offset int, f func(writer *Writer)) {
-	t := NewWriter()
-	f(t)
-	data := t.Bytes()
-	w.WriteUInt32(uint32(len(data) + offset))
-	w.Write(data)
+func (w *Writer) WriteIntLvPacket(f func(writer *Writer)) {
+	l := len(*w)
+	*w = append(*w, []byte{0, 0, 0, 0}...)
+	f(w)
+	binary.BigEndian.PutUint32((*w)[l:], uint32(len(*w)-l))
 }
 
 func (w *Writer) WriteUniPacket(commandName string, sessionId, extraData, body []byte) {
-	w.WriteIntLvPacket(4, func(w *Writer) {
+	w.WriteIntLvPacket(func(w *Writer) {
 		w.WriteString(commandName)
 		w.WriteUInt32(8)
 		w.Write(sessionId)
@@ -89,7 +84,7 @@ func (w *Writer) WriteUniPacket(commandName string, sessionId, extraData, body [
 			w.Write(extraData)
 		}
 	})
-	w.WriteIntLvPacket(4, func(w *Writer) {
+	w.WriteIntLvPacket(func(w *Writer) {
 		w.Write(body)
 	})
 }
@@ -100,13 +95,13 @@ func (w *Writer) WriteTlv(data []byte) {
 }
 
 func (w *Writer) WriteTlvLimitedSize(data []byte, limit int) {
-	if len(data) <= limit {
-		w.WriteTlv(data)
-		return
+	if len(data) < limit {
+		limit = len(data)
 	}
 	w.WriteTlv(data[:limit])
 }
 
 func (w *Writer) Bytes() []byte {
-	return w.buf.Bytes()
+	log.Output(3, fmt.Sprintf("Packet %d/%d", len(*w), cap(*w)))
+	return *w
 }

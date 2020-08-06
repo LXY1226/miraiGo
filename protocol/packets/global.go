@@ -53,7 +53,7 @@ func BuildOicqRequestPacket(uin int64, commandId uint16, encrypt IEncryptMethod,
 
 func BuildSsoPacket(seq uint16, commandName, imei string, extData, outPacketSessionId, body, ksid []byte) []byte {
 	p := binary.NewWriter()
-	p.WriteIntLvPacket(4, func(writer *binary.Writer) {
+	p.WriteIntLvPacket(func(writer *binary.Writer) {
 		writer.WriteUInt32(uint32(seq))
 		writer.WriteUInt32(537062409) // Android pad (sub app id)
 		writer.WriteUInt32(537062409)
@@ -76,7 +76,7 @@ func BuildSsoPacket(seq uint16, commandName, imei string, extData, outPacketSess
 		writer.WriteUInt32(0x04)
 	})
 
-	p.WriteIntLvPacket(4, func(writer *binary.Writer) {
+	p.WriteIntLvPacket(func(writer *binary.Writer) {
 		writer.Write(body)
 	})
 	return p.Bytes()

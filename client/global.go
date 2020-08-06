@@ -77,7 +77,7 @@ var SystemDeviceInfo = &DeviceInfo{
 	BaseBand:    []byte{},
 	SimInfo:     []byte("T-Mobile"),
 	OSType:      []byte("android"),
-	MacAddress:  []byte("00:50:56:C0:00:08"),
+	MacAddress:  []byte("00:50:56:6E:3B:34"),
 	IpAddress:   []byte{10, 0, 1, 3}, // 10.0.1.3
 	WifiBSSID:   []byte("00:50:56:C0:00:08"),
 	WifiSSID:    []byte("<unknown ssid>"),
@@ -154,10 +154,10 @@ func (info *DeviceInfo) GenNewGuid() {
 }
 
 func (info *DeviceInfo) GenNewTgtgtKey() {
-	r := make([]byte, 16)
-	rand.Read(r)
-	t := md5.Sum(append(r, info.Guid...))
-	info.TgtgtKey = t[:]
+	//r := make([]byte, 16)
+	//rand.Read(r)
+	//t := md5.Sum(append(r, info.Guid...))
+	info.TgtgtKey = make([]byte, 16)
 }
 
 func (info *DeviceInfo) GenDeviceInfoData() []byte {
