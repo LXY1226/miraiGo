@@ -103,9 +103,9 @@ func NewClientMd5(uin int64, passwordMd5 [16]byte) *QQClient {
 		OutGoingPacketSessionId: []byte{0x02, 0xB0, 0x5B, 0x8B},
 		sigInfo:                 &loginSigInfo{},
 		requestPacketRequestId:  1921334513,
-		groupSeq:                22911,
-		friendSeq:               22911,
-		highwayApplyUpSeq:       77918,
+		groupSeq:                22909,
+		friendSeq:               22909,
+		highwayApplyUpSeq:       77916,
 		ksid:                    []byte("|454001228437590|A8.2.7.27f6ea96"),
 		eventHandlers:           &eventHandlers{},
 		groupListLock:           new(sync.Mutex),
@@ -659,42 +659,32 @@ func (c *QQClient) registerClient() {
 }
 
 func (c *QQClient) nextSeq() uint16 {
-	c.SequenceId++
-	c.SequenceId &= 0x7FFF
-	if c.SequenceId == 0 {
+	if c.SequenceId <= 0x7FFF {
 		c.SequenceId++
+	} else {
+		c.SequenceId = 1
 	}
 	return c.SequenceId
 }
 
 func (c *QQClient) nextPacketSeq() int32 {
-	s := atomic.LoadInt32(&c.requestPacketRequestId)
-	atomic.AddInt32(&c.requestPacketRequestId, 2)
-	return s
+	return atomic.AddInt32(&c.requestPacketRequestId, 2)
 }
 
 func (c *QQClient) nextGroupSeq() int32 {
-	s := atomic.LoadInt32(&c.groupSeq)
-	atomic.AddInt32(&c.groupSeq, 2)
-	return s
+	return atomic.AddInt32(&c.groupSeq, 2)
 }
 
 func (c *QQClient) nextFriendSeq() int32 {
-	s := atomic.LoadInt32(&c.friendSeq)
-	atomic.AddInt32(&c.friendSeq, 1)
-	return s
+	return atomic.AddInt32(&c.friendSeq, 1)
 }
 
 func (c *QQClient) nextGroupDataTransSeq() int32 {
-	s := atomic.LoadInt32(&c.groupDataTransSeq)
-	atomic.AddInt32(&c.groupDataTransSeq, 2)
-	return s
+	return atomic.AddInt32(&c.groupDataTransSeq, 2)
 }
 
 func (c *QQClient) nextHighwayApplySeq() int32 {
-	s := atomic.LoadInt32(&c.highwayApplyUpSeq)
-	atomic.AddInt32(&c.highwayApplyUpSeq, 2)
-	return s
+	return atomic.AddInt32(&c.highwayApplyUpSeq, 2)
 }
 
 func (c *QQClient) send(pkt []byte) error {
@@ -764,7 +754,7 @@ func (c *QQClient) netLoop() {
 			}
 		}
 		retry = 0
-		fmt.Println(pkt.CommandName)
+		//fmt.Println(pkt.CommandName)
 		go func() {
 			defer func() {
 				if pan := recover(); pan != nil {
@@ -773,7 +763,7 @@ func (c *QQClient) netLoop() {
 			}()
 			decoder, ok := decoders[pkt.CommandName]
 			if !ok {
-				log.Print("Unknown Command", pkt.CommandName)
+				log.Output(1, "Unknown Command "+pkt.CommandName)
 				if f, ok := c.handlers.Load(pkt.SequenceId); ok {
 					c.handlers.Delete(pkt.SequenceId)
 					f.(func(i interface{}, err error))(nil, nil)
