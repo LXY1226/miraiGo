@@ -184,6 +184,14 @@ func (c *QQClient) GetFriendList() (*FriendListResponse, error) {
 	return r, nil
 }
 
+func (c *QQClient) GetShortVideoUrl(uuid, md5 []byte) string {
+	i, err := c.sendAndWait(c.buildPttShortVideoDownReqPacket(uuid, md5))
+	if err != nil {
+		return ""
+	}
+	return i.(string)
+}
+
 func (c *QQClient) GetGroupFileUrl(groupCode int64, fileId string, busId int32) string {
 	i, err := c.sendAndWait(c.buildGroupFileDownloadReqPacket(groupCode, fileId, busId))
 	if err != nil {
@@ -642,7 +650,16 @@ var servers = []*net.TCPAddr{
 
 func (c *QQClient) connect() error {
 	if c.server == nil {
-		c.server = servers[rand.Intn(len(servers))]
+		addrs, err := net.LookupHost("msfwifi.3g.qq.com")
+		if err == nil && len(addrs) > 0 {
+			addr := addrs[rand.Intn(len(addrs))]
+			c.server = &net.TCPAddr{
+				IP:   net.ParseIP(addr),
+				Port: 8080,
+			}
+		} else {
+			c.server = servers[rand.Intn(len(servers))]
+		}
 	}
 	conn, err := net.DialTCP("tcp", nil, c.server)
 	if err != nil {
@@ -758,7 +775,7 @@ func (c *QQClient) netLoop() {
 		go func() {
 			defer func() {
 				if pan := recover(); pan != nil {
-					//
+					fmt.Println("panic on decoder:", pan)
 				}
 			}()
 			decoder, ok := decoders[pkt.CommandName]

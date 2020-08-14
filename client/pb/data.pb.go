@@ -370,12 +370,13 @@ type D388ReqBody struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	NetType        int32          `protobuf:"varint,1,opt,name=netType,proto3" json:"netType,omitempty"`
-	Subcmd         int32          `protobuf:"varint,2,opt,name=subcmd,proto3" json:"subcmd,omitempty"`
-	MsgTryUpImgReq []*TryUpImgReq `protobuf:"bytes,3,rep,name=msgTryUpImgReq,proto3" json:"msgTryUpImgReq,omitempty"`
-	MsgTryUpPttReq []*TryUpPttReq `protobuf:"bytes,5,rep,name=msgTryUpPttReq,proto3" json:"msgTryUpPttReq,omitempty"`
-	CommandId      int32          `protobuf:"varint,7,opt,name=commandId,proto3" json:"commandId,omitempty"`
-	Extension      []byte         `protobuf:"bytes,1001,opt,name=extension,proto3" json:"extension,omitempty"`
+	NetType        int32           `protobuf:"varint,1,opt,name=netType,proto3" json:"netType,omitempty"`
+	Subcmd         int32           `protobuf:"varint,2,opt,name=subcmd,proto3" json:"subcmd,omitempty"`
+	MsgTryUpImgReq []*TryUpImgReq  `protobuf:"bytes,3,rep,name=msgTryUpImgReq,proto3" json:"msgTryUpImgReq,omitempty"`
+	MsgTryUpPttReq []*TryUpPttReq  `protobuf:"bytes,5,rep,name=msgTryUpPttReq,proto3" json:"msgTryUpPttReq,omitempty"`
+	MsgGetPttReq   []*GetPttUrlReq `protobuf:"bytes,6,rep,name=msgGetPttReq,proto3" json:"msgGetPttReq,omitempty"`
+	CommandId      int32           `protobuf:"varint,7,opt,name=commandId,proto3" json:"commandId,omitempty"`
+	Extension      []byte          `protobuf:"bytes,1001,opt,name=extension,proto3" json:"extension,omitempty"`
 }
 
 func (x *D388ReqBody) Reset() {
