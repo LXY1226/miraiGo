@@ -2,6 +2,7 @@ package binary
 
 import (
 	"bytes"
+	"log"
 	"net"
 )
 
@@ -70,8 +71,7 @@ func (r *Reader) ReadStringShort() string {
 }
 
 func (r *Reader) ReadStringLimit(limit int) string {
-	data := r.ReadBytes(limit)
-	return string(data)
+	return string(r.ReadBytes(limit))
 }
 
 func (r *Reader) ReadAvailable() []byte {
@@ -81,6 +81,7 @@ func (r *Reader) ReadAvailable() []byte {
 func (r *Reader) ReadTlvMap(tagSize int) (m TlvMap) {
 	defer func() {
 		if r := recover(); r != nil {
+			log.Print("Error in Tlv Decode", r.(error).Error())
 			// TODO: error
 		}
 	}()

@@ -2,15 +2,13 @@ package binary
 
 import (
 	"encoding/binary"
-	"fmt"
-	"log"
 )
 
 type Writer []byte
 
 func NewWriter() *Writer {
-	b := make([]byte, 64)[:0]
-	return (*Writer)(&b)
+	//b := make([]byte, 64)[:0]
+	return (*Writer)(&[]byte{})
 }
 
 func NewWriterF(f func(writer *Writer)) []byte {
@@ -102,6 +100,6 @@ func (w *Writer) WriteTlvLimitedSize(data []byte, limit int) {
 }
 
 func (w *Writer) Bytes() []byte {
-	log.Output(3, fmt.Sprintf("Packet %d/%d", len(*w), cap(*w)))
+	//log.Output(3, fmt.Sprintf("Packet %d/%d", len(*w), cap(*w)))
 	return *w
 }

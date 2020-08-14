@@ -48,6 +48,9 @@ var decoders = map[string]func(*QQClient, uint16, []byte) (interface{}, error){
 	"MultiMsg.ApplyUp":                         decodeMultiApplyUpResponse,
 	"MultiMsg.ApplyDown":                       decodeMultiApplyDownResponse,
 	"OidbSvc.0x6d6_2":                          decodeOIDB6d6Response,
+	"Heartbeat.Alive":                          decodeNothing,
+	"MessageSvc.PbSendMsg":                     decodeNothing,
+	"MessageSvc.PushReaded":                    decodeNothing,
 }
 
 func decodeLoginResponse(c *QQClient, _ uint16, payload []byte) (interface{}, error) {
@@ -816,4 +819,8 @@ func decodeOIDB6d6Response(c *QQClient, _ uint16, payload []byte) (interface{}, 
 	ip := rsp.DownloadFileRsp.DownloadIp
 	url := hex.EncodeToString(rsp.DownloadFileRsp.DownloadUrl)
 	return fmt.Sprintf("http://%s/ftn_handler/%s/", ip, url), nil
+}
+
+func decodeNothing(_ *QQClient, _ uint16, _ []byte) (interface{}, error) {
+	return nil, nil
 }

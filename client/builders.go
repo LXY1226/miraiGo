@@ -281,7 +281,7 @@ func (c *QQClient) buildDeviceLockLoginPacket(t402 []byte) (uint16, []byte) {
 
 func (c *QQClient) buildCaptchaPacket(result string, sign []byte) (uint16, []byte) {
 	seq := c.nextSeq()
-	req := packets.BuildOicqRequestPacket(c.Uin, 0x810, crypto.ECDH, c.RandomKey, func(w *binary.Writer) {
+	req := packets.BuildOicqRequestPacket(c.Uin, 0x0810, crypto.ECDH, c.RandomKey, func(w *binary.Writer) {
 		w.WriteUInt16(2) // sub command
 		w.WriteUInt16(4)
 		w.Write(tlv.T2(result, sign))
