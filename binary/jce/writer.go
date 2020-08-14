@@ -7,15 +7,15 @@ import (
 	"strconv"
 )
 
-type JceWriter struct {
+type Writer struct {
 	buf *bytes.Buffer
 }
 
-func NewJceWriter() *JceWriter {
-	return &JceWriter{buf: new(bytes.Buffer)}
+func NewJceWriter() *Writer {
+	return &Writer{buf: new(bytes.Buffer)}
 }
 
-func (w *JceWriter) writeHead(t byte, tag int) {
+func (w *Writer) writeHead(t byte, tag int) {
 	if tag < 15 {
 		b := byte(tag<<4) | t
 		w.buf.WriteByte(b)
@@ -26,7 +26,7 @@ func (w *JceWriter) writeHead(t byte, tag int) {
 	}
 }
 
-func (w *JceWriter) WriteByte(b byte, tag int) {
+func (w *Writer) WriteByte(b byte, tag int) {
 	if b == 0 {
 		w.writeHead(12, tag)
 	} else {
@@ -35,7 +35,7 @@ func (w *JceWriter) WriteByte(b byte, tag int) {
 	}
 }
 
-func (w *JceWriter) WriteBool(b bool, tag int) {
+func (w *Writer) WriteBool(b bool, tag int) {
 	var by byte = 0
 	if b {
 		by = 1
@@ -43,7 +43,7 @@ func (w *JceWriter) WriteBool(b bool, tag int) {
 	w.WriteByte(by, tag)
 }
 
-func (w *JceWriter) WriteInt16(n int16, tag int) {
+func (w *Writer) WriteInt16(n int16, tag int) {
 	if n >= -128 && n <= 127 {
 		w.WriteByte(byte(n), tag)
 		return
@@ -52,7 +52,7 @@ func (w *JceWriter) WriteInt16(n int16, tag int) {
 	_ = goBinary.Write(w.buf, goBinary.BigEndian, n)
 }
 
-func (w *JceWriter) WriteInt32(n int32, tag int) {
+func (w *Writer) WriteInt32(n int32, tag int) {
 	if n >= -32768 && n <= 32767 { // ? if ((n >= 32768) && (n <= 32767))
 		w.WriteInt16(int16(n), tag)
 		return
@@ -61,7 +61,7 @@ func (w *JceWriter) WriteInt32(n int32, tag int) {
 	_ = goBinary.Write(w.buf, goBinary.BigEndian, n)
 }
 
-func (w *JceWriter) WriteInt64(n int64, tag int) {
+func (w *Writer) WriteInt64(n int64, tag int) {
 	if n >= -2147483648 && n <= 2147483647 {
 		w.WriteInt32(int32(n), tag)
 		return
@@ -70,17 +70,17 @@ func (w *JceWriter) WriteInt64(n int64, tag int) {
 	_ = goBinary.Write(w.buf, goBinary.BigEndian, n)
 }
 
-func (w *JceWriter) WriteFloat32(n float32, tag int) {
+func (w *Writer) WriteFloat32(n float32, tag int) {
 	w.writeHead(4, tag)
 	_ = goBinary.Write(w.buf, goBinary.BigEndian, n)
 }
 
-func (w *JceWriter) WriteFloat64(n float64, tag int) {
+func (w *Writer) WriteFloat64(n float64, tag int) {
 	w.writeHead(5, tag)
 	_ = goBinary.Write(w.buf, goBinary.BigEndian, n)
 }
 
-func (w *JceWriter) WriteString(s string, tag int) {
+func (w *Writer) WriteString(s string, tag int) {
 	by := []byte(s)
 	if len(by) > 255 {
 		w.writeHead(7, tag)
@@ -93,14 +93,14 @@ func (w *JceWriter) WriteString(s string, tag int) {
 	w.buf.Write(by)
 }
 
-func (w *JceWriter) WriteBytes(l []byte, tag int) {
+func (w *Writer) WriteBytes(l []byte, tag int) {
 	w.writeHead(13, tag)
 	w.writeHead(0, 0)
 	w.WriteInt32(int32(len(l)), 0)
 	w.buf.Write(l)
 }
 
-func (w *JceWriter) WriteInt64Slice(l []int64, tag int) {
+func (w *Writer) WriteInt64Slice(l []int64, tag int) {
 	w.writeHead(9, tag)
 	if len(l) == 0 {
 		w.WriteInt32(0, 0)
@@ -112,7 +112,7 @@ func (w *JceWriter) WriteInt64Slice(l []int64, tag int) {
 	}
 }
 
-func (w *JceWriter) WriteJceStructSlice(l []IJceStruct, tag int) {
+func (w *Writer) WriteJceStructSlice(l []IJceStruct, tag int) {
 	w.writeHead(9, tag)
 	if len(l) == 0 {
 		w.WriteInt32(0, 0)
@@ -124,7 +124,7 @@ func (w *JceWriter) WriteJceStructSlice(l []IJceStruct, tag int) {
 	}
 }
 
-func (w *JceWriter) WriteMap(m interface{}, tag int) {
+func (w *Writer) WriteMap(m interface{}, tag int) {
 	if m == nil {
 		w.writeHead(8, tag)
 		w.WriteInt32(0, 0)
@@ -143,7 +143,7 @@ func (w *JceWriter) WriteMap(m interface{}, tag int) {
 	}
 }
 
-func (w *JceWriter) WriteObject(i interface{}, tag int) {
+func (w *Writer) WriteObject(i interface{}, tag int) {
 	t := reflect.TypeOf(i)
 	if t.Kind() == reflect.Map {
 		w.WriteMap(i, tag)
@@ -177,7 +177,7 @@ func (w *JceWriter) WriteObject(i interface{}, tag int) {
 	}
 }
 
-func (w *JceWriter) WriteJceStructRaw(s IJceStruct) {
+func (w *Writer) WriteJceStructRaw(s IJceStruct) {
 	var (
 		t = reflect.TypeOf(s).Elem()
 		v = reflect.ValueOf(s).Elem()
@@ -195,12 +195,12 @@ func (w *JceWriter) WriteJceStructRaw(s IJceStruct) {
 	}
 }
 
-func (w *JceWriter) WriteJceStruct(s IJceStruct, tag int) {
+func (w *Writer) WriteJceStruct(s IJceStruct, tag int) {
 	w.writeHead(10, tag)
 	w.WriteJceStructRaw(s)
 	w.writeHead(11, 0)
 }
 
-func (w *JceWriter) Bytes() []byte {
+func (w *Writer) Bytes() []byte {
 	return w.buf.Bytes()
 }

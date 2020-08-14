@@ -2,7 +2,7 @@ package jce
 
 type IJceStruct interface {
 	//ToBytes() []byte
-	ReadFrom(*JceReader)
+	ReadFrom(*Reader)
 }
 
 type (
@@ -319,7 +319,7 @@ func (pkt *RequestPacket) ToBytes() []byte {
 	return w.Bytes()
 }
 
-func (pkt *RequestPacket) ReadFrom(r *JceReader) {
+func (pkt *RequestPacket) ReadFrom(r *Reader) {
 	pkt.SBuffer = []byte{}
 	pkt.Context = make(map[string]string)
 	pkt.Status = make(map[string]string)
@@ -341,14 +341,14 @@ func (pkt *RequestDataVersion3) ToBytes() []byte {
 	return w.Bytes()
 }
 
-func (pkt *RequestDataVersion3) ReadFrom(r *JceReader) {
+func (pkt *RequestDataVersion3) ReadFrom(r *Reader) {
 	pkt.Map = make(map[string][]byte)
 	r.ReadMapF(0, func(k interface{}, v interface{}) {
 		pkt.Map[k.(string)] = v.([]byte)
 	})
 }
 
-func (pkt *RequestDataVersion2) ReadFrom(r *JceReader) {
+func (pkt *RequestDataVersion2) ReadFrom(r *Reader) {
 	pkt.Map = make(map[string]map[string][]byte)
 	r.ReadMapF(0, func(k interface{}, v interface{}) {
 		pkt.Map[k.(string)] = make(map[string][]byte)
@@ -370,7 +370,7 @@ func (pkt *FriendListRequest) ToBytes() []byte {
 	return w.Bytes()
 }
 
-func (pkt *FriendInfo) ReadFrom(r *JceReader) {
+func (pkt *FriendInfo) ReadFrom(r *Reader) {
 	pkt.FriendUin = r.ReadInt64(0)
 	pkt.GroupId = r.ReadByte(1)
 	pkt.FaceId = r.ReadInt16(2)
@@ -390,7 +390,7 @@ func (pkt *TroopListRequest) ToBytes() []byte {
 	return w.Bytes()
 }
 
-func (pkt *TroopNumber) ReadFrom(r *JceReader) {
+func (pkt *TroopNumber) ReadFrom(r *Reader) {
 	pkt.GroupUin = r.ReadInt64(0)
 	pkt.GroupCode = r.ReadInt64(1)
 	pkt.GroupName = r.ReadString(4)
@@ -406,7 +406,7 @@ func (pkt *TroopMemberListRequest) ToBytes() []byte {
 	return w.Bytes()
 }
 
-func (pkt *TroopMemberInfo) ReadFrom(r *JceReader) {
+func (pkt *TroopMemberInfo) ReadFrom(r *Reader) {
 	pkt.MemberUin = r.ReadInt64(0)
 	pkt.FaceId = r.ReadInt16(1)
 	pkt.Nick = r.ReadString(4)
@@ -421,7 +421,7 @@ func (pkt *TroopMemberInfo) ReadFrom(r *JceReader) {
 	pkt.SpecialTitleExpireTime = r.ReadInt64(24)
 }
 
-func (pkt *PushMessageInfo) ReadFrom(r *JceReader) {
+func (pkt *PushMessageInfo) ReadFrom(r *Reader) {
 	pkt.FromUin = r.ReadInt64(0)
 	pkt.MsgTime = r.ReadInt64(1)
 	pkt.MsgType = r.ReadInt16(2)
