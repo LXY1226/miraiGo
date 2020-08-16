@@ -1,6 +1,6 @@
 package jce
 
-type IJceStruct interface {
+type Struct interface {
 	//ToBytes() []byte
 	ReadFrom(*Reader)
 }
@@ -28,7 +28,7 @@ type (
 	}
 
 	SvcReqRegister struct {
-		IJceStruct
+		Struct
 		Uin                int64  `jceId:"0"`
 		Bid                int64  `jceId:"1"`
 		ConnType           byte   `jceId:"2"`
@@ -87,16 +87,16 @@ type (
 	}
 
 	SvcRespPushMsg struct {
-		IJceStruct
-		Uin         int64        `jceId:"0"`
-		DelInfos    []IJceStruct `jceId:"1"`
-		Svrip       int32        `jceId:"2"`
-		PushToken   []byte       `jceId:"3"`
-		ServiceType int32        `jceId:"4"`
+		Struct
+		Uin         int64    `jceId:"0"`
+		DelInfos    []Struct `jceId:"1"`
+		Svrip       int32    `jceId:"2"`
+		PushToken   []byte   `jceId:"3"`
+		ServiceType int32    `jceId:"4"`
 	}
 
 	DelMsgInfo struct {
-		IJceStruct
+		Struct
 		FromUin    int64  `jceId:"0"`
 		MsgTime    int64  `jceId:"1"`
 		MsgSeq     int16  `jceId:"2"`
@@ -111,7 +111,7 @@ type (
 	}
 
 	FriendListRequest struct {
-		IJceStruct
+		Struct
 		Reqtype         int32   `jceId:"0"`
 		IfReflush       byte    `jceId:"1"`
 		Uin             int64   `jceId:"2"`
@@ -193,7 +193,7 @@ type (
 	}
 
 	TroopListRequest struct {
-		IJceStruct
+		Struct
 		Uin              int64   `jceId:"0"`
 		GetMSFMsgFlag    byte    `jceId:"1"`
 		Cookies          []byte  `jceId:"2"`
@@ -244,7 +244,7 @@ type (
 	}
 
 	TroopMemberListRequest struct {
-		IJceStruct
+		Struct
 		Uin                int64 `jceId:"0"`
 		GroupCode          int64 `jceId:"1"`
 		NextUin            int64 `jceId:"2"`
@@ -294,15 +294,15 @@ type (
 	}
 
 	ModifyGroupCardRequest struct {
-		IJceStruct
-		Zero      int64        `jceId:"0"`
-		GroupCode int64        `jceId:"1"`
-		NewSeq    int64        `jceId:"2"`
-		UinInfo   []IJceStruct `jceId:"3"`
+		Struct
+		Zero      int64    `jceId:"0"`
+		GroupCode int64    `jceId:"1"`
+		NewSeq    int64    `jceId:"2"`
+		UinInfo   []Struct `jceId:"3"`
 	}
 
 	UinInfo struct {
-		IJceStruct
+		Struct
 		Uin    int64  `jceId:"0"`
 		Flag   int64  `jceId:"1"`
 		Name   string `jceId:"2"`

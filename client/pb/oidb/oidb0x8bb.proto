@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+option go_package = ".;oidb";
+
+message ForbidUin {
+  uint64 Uin = 1;
+  uint32 UpdateTime = 2;
+}
+
+message GroupConcernedInfo {
+  uint64 GroupCode = 1;
+  uint32 UpdateTime = 2;
+  repeated UinInfo Concerned = 3;
+  repeated WordInfo Word = 4;
+  repeated ForbidUin ForbidUins = 5;
+  repeated uint64 DefaultUins = 6;
+}
+
+message ReadReq {
+  repeated GroupConcernedInfo GroupConcerned = 1;
+}
+
+message ReadRsp {
+  repeated GroupConcernedInfo GroupConcerned = 1;
+}
+
+message ReqBody {
+  WriteReq WriteReq = 1;
+  ReadReq ReadReq = 2;
+}
+
+message RspBody {
+  WriteReq WriteReq = 1;
+  ReadReq ReadReq = 2;
+}
+
+message UinInfo {
+  uint64 Uin = 1;
+  uint32 UpdateTime = 2;
+  uint32 From = 3;
+}
+
+message WordInfo {
+  string Keyword = 1;
+  uint32 UpdateTime = 2;
+}
+
+message WriteReq {
+  repeated GroupConcernedInfo GroupConcerned = 1;
+}
+
+message WriteRsp {
+  repeated GroupConcernedInfo GroupConcerned = 1;
+}

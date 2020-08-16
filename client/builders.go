@@ -904,7 +904,7 @@ func (c *QQClient) buildEditGroupTagPacket(groupCode, memberUin int64, newTag st
 	seq := c.nextSeq()
 	req := &jce.ModifyGroupCardRequest{
 		GroupCode: groupCode,
-		UinInfo: []jce.IJceStruct{
+		UinInfo: []jce.Struct{
 			&jce.UinInfo{
 				Uin:  memberUin,
 				Flag: 31,

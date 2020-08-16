@@ -34,7 +34,7 @@ func (r *Reader) readHead() (hd *HeadData, l int32) {
 	return hd, 1
 }
 
-func (r *Reader) peakHead() (hd *HeadData, l int32) {
+func (r *Reader) peekHead() (hd *HeadData, l int32) {
 	offset := r.buf.Size() - int64(r.buf.Len())
 	n := NewJceReader(r.data[offset:])
 	return n.readHead()
@@ -133,7 +133,7 @@ func (r *Reader) readFloat64() float64 {
 
 func (r *Reader) skipToTag(tag int) bool {
 	for {
-		hd, l := r.peakHead()
+		hd, l := r.peekHead()
 		if tag <= hd.Tag || hd.Type == 11 {
 			return tag == hd.Tag
 		}
@@ -348,7 +348,7 @@ func (r *Reader) readObject(t reflect.Type, tag int) reflect.Value {
 		r.ReadObject(&s, tag)
 		return reflect.ValueOf(s)
 	case reflect.Slice:
-		s := reflect.New(t.Elem()).Interface().(IJceStruct)
+		s := reflect.New(t.Elem()).Interface().(Struct)
 		r.readHead()
 		s.ReadFrom(r)
 		r.skipToStructEnd()
@@ -410,7 +410,7 @@ func (r *Reader) ReadObject(i interface{}, tag int) {
 		*o = r.ReadFloat64(tag)
 	case *string:
 		*o = r.ReadString(tag)
-	case IJceStruct:
+	case Struct:
 		o.ReadFrom(r)
 	}
 }

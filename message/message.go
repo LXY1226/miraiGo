@@ -13,6 +13,10 @@ import (
 	"strings"
 )
 
+type Message struct {
+	Id int32
+}
+
 type (
 	PrivateMessage struct {
 		Id         int32
