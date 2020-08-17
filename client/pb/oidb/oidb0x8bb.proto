@@ -30,8 +30,8 @@ message ReqBody {
 }
 
 message RspBody {
-  WriteReq WriteReq = 1;
-  ReadReq ReadReq = 2;
+  WriteRsp WriteRsp = 1;
+  ReadRsp ReadRsp = 2;
 }
 
 message UinInfo {

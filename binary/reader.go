@@ -1,13 +1,13 @@
 package binary
 
 import (
-	"bytes"
 	"log"
 	"net"
 )
 
 type Reader struct {
-	buf *bytes.Reader
+	buf []byte
+	i   int
 }
 
 type NetworkReader struct {
@@ -19,26 +19,19 @@ type TlvMap map[uint16][]byte
 // --- ByteStream reader ---
 
 func NewReader(data []byte) *Reader {
-	buf := bytes.NewReader(data)
-	return &Reader{
-		buf: buf,
-	}
+	return &Reader{data, 0}
 }
 
 func (r *Reader) ReadByte() byte {
-	b, err := r.buf.ReadByte()
-	if err != nil {
-		panic(err)
-	}
+	b := r.buf[r.i]
+	r.i++
 	return b
 }
 
 func (r *Reader) ReadBytes(len int) []byte {
 	b := make([]byte, len)
-	_, err := r.buf.Read(b)
-	if err != nil {
-		panic(err)
-	}
+	copy(b, r.buf[r.i:r.i+len])
+	r.i += len
 	return b
 }
 
@@ -47,12 +40,7 @@ func (r *Reader) ReadBytesShort() []byte {
 }
 
 func (r *Reader) ReadUInt16() uint16 {
-	f, _ := r.buf.ReadByte()
-	s, err := r.buf.ReadByte()
-	if err != nil {
-		panic(err)
-	}
-	return uint16((int32(f) << 8) + int32(s))
+	return uint16((int32(r.ReadByte()) << 8) + int32(r.ReadByte()))
 }
 
 func (r *Reader) ReadInt32() int32 {
@@ -75,7 +63,7 @@ func (r *Reader) ReadStringLimit(limit int) string {
 }
 
 func (r *Reader) ReadAvailable() []byte {
-	return r.ReadBytes(r.buf.Len())
+	return r.ReadBytes(r.Len())
 }
 
 func (r *Reader) ReadTlvMap(tagSize int) (m TlvMap) {
@@ -106,7 +94,7 @@ func (r *Reader) ReadTlvMap(tagSize int) (m TlvMap) {
 }
 
 func (r *Reader) Len() int {
-	return r.buf.Len()
+	return len(r.buf) - r.i
 }
 
 func (tlv TlvMap) Exists(key uint16) bool {
