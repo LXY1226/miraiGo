@@ -25,6 +25,21 @@ type GroupImageElement struct {
 	Url     string
 }
 
+type VoiceElement struct {
+	Name string
+	Md5  []byte
+	Size int32
+	Url  string
+
+	// --- sending ---
+	Data []byte
+}
+
+type GroupVoiceElement struct {
+	Data []byte
+	Ptt  *msg.Ptt
+}
+
 type FriendImageElement struct {
 	ImageId string
 	Md5     []byte
@@ -55,6 +70,14 @@ type ReplyElement struct {
 	Elements []IMessageElement
 
 	//original []*msg.Elem
+}
+
+type ShortVideoElement struct {
+	Name string
+	Uuid []byte
+	Size int32
+	Md5  []byte
+	Url  string
 }
 
 type ServiceElement struct {

@@ -56,8 +56,8 @@ type QQClient struct {
 	sigInfo          *loginSigInfo
 	pwdFlag          bool
 
-	lastMessageSeq         int32
-	lastMessageSeqTmp      sync.Map
+	lastMessageSeq int32
+	//lastMessageSeqTmp      sync.Map
 	lastLostMsg            string
 	groupMsgBuilders       sync.Map
 	onlinePushCache        []int16 // reset on reconnect
@@ -69,6 +69,7 @@ type QQClient struct {
 	eventHandlers          *eventHandlers
 
 	groupListLock *sync.Mutex
+	msgSvcLock    sync.Mutex
 }
 
 type loginSigInfo struct {
@@ -83,6 +84,9 @@ type loginSigInfo struct {
 	d2Key              []byte
 	wtSessionTicketKey []byte
 	deviceToken        []byte
+
+	psKeyMap    map[string][]byte
+	pt4TokenMap map[string][]byte
 }
 
 func init() {
@@ -259,8 +263,32 @@ func (c *QQClient) SendPrivateMessage(target int64, m *message.SendingMessage) *
 	mr := int32(rand.Uint32())
 	seq := c.nextFriendSeq()
 	t := time.Now().Unix()
-	_, pkt := c.buildFriendSendingPacket(target, seq, mr, t, m)
-	_ = c.send(pkt)
+	imgCount := m.Count(func(e message.IMessageElement) bool { return e.Type() == message.Image })
+	msgLen := message.EstimateLength(m.Elements, 703)
+	if msgLen > 5000 || imgCount > 50 {
+		return nil
+	}
+	if msgLen > 300 || imgCount > 2 {
+		div := int32(rand.Uint32())
+		var fragmented [][]message.IMessageElement
+		for _, elem := range m.Elements {
+			switch o := elem.(type) {
+			case *message.TextElement:
+				for _, text := range utils.ChunkString(o.Content, 220) {
+					fragmented = append(fragmented, []message.IMessageElement{message.NewText(text)})
+				}
+			default:
+				fragmented = append(fragmented, []message.IMessageElement{o})
+			}
+		}
+		for i, elems := range fragmented {
+			_, pkt := c.buildFriendSendingPacket(target, c.nextFriendSeq(), mr, int32(len(fragmented)), int32(i), div, t, elems)
+			_ = c.send(pkt)
+		}
+	} else {
+		_, pkt := c.buildFriendSendingPacket(target, seq, mr, 1, 0, 0, t, m.Elements)
+		_ = c.send(pkt)
+	}
 	return &message.PrivateMessage{
 		Id:         seq,
 		InternalId: mr,
@@ -596,6 +624,28 @@ func (g *GroupInfo) FindMember(uin int64) *GroupMemberInfo {
 	return nil
 }
 
+func (c *QQClient) getCookies() string {
+	return fmt.Sprintf("uin=o%d; skey=%s;", c.Uin, c.sigInfo.sKey)
+}
+
+func (c *QQClient) getCookiesWithDomain(domain string) string {
+	cookie := c.getCookies()
+
+	if psKey, ok := c.sigInfo.psKeyMap[domain]; ok {
+		return fmt.Sprintf("%s p_uin=o%d; p_skey=%s;", cookie, c.Uin, psKey)
+	} else {
+		return cookie
+	}
+}
+
+func (c *QQClient) getCSRFToken() int {
+	accu := 5381
+	for _, b := range c.sigInfo.sKey {
+		accu = accu + (accu << 5) + int(b)
+	}
+	return 2147483647 & accu
+}
+
 func (c *QQClient) editMemberCard(groupCode, memberUin int64, card string) {
 	_, _ = c.sendAndWait(c.buildEditGroupTagPacket(groupCode, memberUin, card))
 }
@@ -770,7 +820,7 @@ func (c *QQClient) netLoop() {
 			}
 		}
 		retry = 0
-		//fmt.Println(pkt.CommandName)
+		//fmt.Println(pkt.CommandName, pkt.SequenceId)
 		go func() {
 			defer func() {
 				if pan := recover(); pan != nil {

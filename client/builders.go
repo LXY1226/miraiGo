@@ -377,7 +377,7 @@ func (c *QQClient) buildFriendGroupListRequestPacket(friendStartIndex, friendLis
 	})
 	req := &jce.FriendListRequest{
 		Reqtype: 3,
-		IfReflush: func() byte { // fuck golang
+		IfReflush: func() byte {
 			if friendStartIndex <= 0 {
 				return 0
 			}
@@ -590,14 +590,14 @@ func (c *QQClient) buildGroupSendingPacket(groupCode int64, r int32, forward boo
 }
 
 // MessageSvc.PbSendMsg
-func (c *QQClient) buildFriendSendingPacket(target int64, msgSeq, r int32, time int64, m *message.SendingMessage) (uint16, []byte) {
+func (c *QQClient) buildFriendSendingPacket(target int64, msgSeq, r, pkgNum, pkgIndex, pkgDiv int32, time int64, m []message.IMessageElement) (uint16, []byte) {
 	seq := c.nextSeq()
 	req := &msg.SendMessageRequest{
 		RoutingHead: &msg.RoutingHead{C2C: &msg.C2C{ToUin: target}},
-		ContentHead: &msg.ContentHead{PkgNum: 1},
+		ContentHead: &msg.ContentHead{PkgNum: pkgNum, PkgIndex: pkgIndex, DivSeq: pkgDiv},
 		MsgBody: &msg.MessageBody{
 			RichText: &msg.RichText{
-				Elems: message.ToProtoElems(m.Elements, false),
+				Elems: message.ToProtoElems(m, false),
 			},
 		},
 		MsgSeq:  msgSeq,
@@ -1127,6 +1127,7 @@ func (c *QQClient) buildGroupFileDownloadReqPacket(groupCode int64, fileId strin
 	return seq, packet
 }
 
+// PttCenterSvr.ShortVideoDownReq
 func (c *QQClient) buildPttShortVideoDownReqPacket(uuid, md5 []byte) (uint16, []byte) {
 	seq := c.nextSeq()
 	body := &pttcenter.ShortVideoReqBody{
