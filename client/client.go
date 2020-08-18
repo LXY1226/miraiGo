@@ -710,6 +710,7 @@ func (c *QQClient) connect() error {
 			c.server = servers[rand.Intn(len(servers))]
 		}
 	}
+	log.Print("连接至...", c.server)
 	conn, err := net.DialTCP("tcp", nil, c.server)
 	if err != nil {
 		return err

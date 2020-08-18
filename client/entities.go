@@ -2,7 +2,6 @@ package client
 
 import (
 	"errors"
-	"github.com/Mrs4s/MiraiGo/utils"
 	"strings"
 	"sync"
 )
