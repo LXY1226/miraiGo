@@ -34,7 +34,7 @@ type QQClient struct {
 	GroupList  []*GroupInfo
 	Online     bool
 
-	SequenceId              uint16
+	SequenceId              int32
 	OutGoingPacketSessionId []byte
 	RandomKey               []byte
 	Conn                    net.Conn
@@ -473,7 +473,6 @@ ok:
 			FileSize:     int32(len(voice)),
 			GroupFileKey: rsp.FileKey,
 			BoolValid:    true,
-			PbReserve:    []byte{8, 0, 40, 0, 56, 0},
 		}}, nil
 }
 
@@ -726,12 +725,7 @@ func (c *QQClient) registerClient() {
 }
 
 func (c *QQClient) nextSeq() uint16 {
-	if c.SequenceId <= 0x7FFF {
-		c.SequenceId++
-	} else {
-		c.SequenceId = 1
-	}
-	return c.SequenceId
+	return uint16(atomic.AddInt32(&c.SequenceId, 1) & 0x7FFF)
 }
 
 func (c *QQClient) nextPacketSeq() int32 {

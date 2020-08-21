@@ -40,12 +40,12 @@ func (r *Reader) ReadBytesShort() []byte {
 }
 
 func (r *Reader) ReadUInt16() uint16 {
-	return uint16((int32(r.ReadByte()) << 8) + int32(r.ReadByte()))
+	return (uint16(r.ReadByte()) << 8) + uint16(r.ReadByte())
 }
 
 func (r *Reader) ReadInt32() int32 {
 	b := r.ReadBytes(4)
-	return (int32(b[0]) << 24) | (int32(b[1]) << 16) | (int32(b[2]) << 8) | int32(b[3])
+	return int32(b[3]) | (int32(b[2]) << 8) | (int32(b[1]) << 16) | (int32(b[0]) << 24)
 }
 
 func (r *Reader) ReadString() string {

@@ -745,7 +745,7 @@ func (c *QQClient) buildGroupPttStorePacket(groupCode int64, md5 []byte, size, v
 				InnerIp:       0,
 				BuildVer:      "6.5.5.663",
 				VoiceLength:   voiceLength,
-				Codec:         0,
+				Codec:         0, // 0->source 1->transcode ?
 				VoiceType:     1,
 				BoolNewUpChan: true,
 			},
