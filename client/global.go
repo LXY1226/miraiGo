@@ -22,8 +22,8 @@ import (
 	"github.com/Mrs4s/MiraiGo/client/pb/oidb"
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/Mrs4s/MiraiGo/utils"
+	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
-	"google.golang.org/protobuf/proto"
 )
 
 type DeviceInfo struct {
@@ -590,7 +590,7 @@ func genForwardTemplate(resId, preview, title, brief, source, summary string, ts
 	)
 	for _, item := range items {
 		if item.GetFileName() == "MultiMsg" {
-			*item.FileName = strconv.FormatInt(ts, 10)
+			item.FileName = strconv.FormatInt(ts, 10)
 		}
 	}
 	return &message.ForwardElement{

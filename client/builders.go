@@ -9,7 +9,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/golang/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/Mrs4s/MiraiGo/binary"
 	"github.com/Mrs4s/MiraiGo/binary/jce"
@@ -389,14 +389,14 @@ func (c *QQClient) buildSummaryCardRequestPacket(target int64) (uint16, []byte) 
 	packBusinessBuf := func(t int32, buf []byte) []byte {
 		return binary.NewWriterF(func(w *binary.Writer) {
 			comm, _ := proto.Marshal(&profilecard.BusiComm{
-				Ver:      proto.Int32(1),
-				Seq:      proto.Int32(int32(seq)),
-				Fromuin:  &c.Uin,
-				Touin:    &target,
-				Service:  &t,
-				Platform: proto.Int32(2),
-				Qqver:    proto.String("8.4.18.4945"),
-				Build:    proto.Int32(4945),
+				Ver:      1,
+				Seq:      int32(seq),
+				Fromuin:  c.Uin,
+				Touin:    target,
+				Service:  t,
+				Platform: 2,
+				Qqver:    "8.4.18.4945",
+				Build:    4945,
 			})
 			w.WriteByte(40)
 			w.WriteUInt32(uint32(len(comm)))
@@ -407,23 +407,15 @@ func (c *QQClient) buildSummaryCardRequestPacket(target int64) (uint16, []byte) 
 		})
 	}
 	gate, _ := proto.Marshal(&profilecard.GateVaProfileGateReq{
-		UCmd:           proto.Int32(3),
-		StPrivilegeReq: &profilecard.GatePrivilegeBaseInfoReq{UReqUin: &target},
-		StGiftReq:      &profilecard.GateGetGiftListReq{Uin: proto.Int32(int32(target))},
-		StVipCare:      &profilecard.GateGetVipCareReq{Uin: &target},
+		UCmd:           3,
+		StPrivilegeReq: &profilecard.GatePrivilegeBaseInfoReq{UReqUin: target},
+		StGiftReq:      &profilecard.GateGetGiftListReq{Uin: int32(target)},
+		StVipCare:      &profilecard.GateGetVipCareReq{Uin: target},
 		OidbFlag: []*profilecard.GateOidbFlagInfo{
-			{
-				Fieled: proto.Int32(42334),
-			},
-			{
-				Fieled: proto.Int32(42340),
-			},
-			{
-				Fieled: proto.Int32(42344),
-			},
-			{
-				Fieled: proto.Int32(42354),
-			},
+			{Fieled: 42334},
+			{Fieled: 42340},
+			{Fieled: 42344},
+			{Fieled: 42354},
 		},
 	})
 	/*
@@ -550,22 +542,22 @@ func (c *QQClient) buildGetMessageRequestPacket(flag msg.SyncFlag, msgTime int64
 	cook := c.syncCookie
 	if cook == nil {
 		cook, _ = proto.Marshal(&msg.SyncCookie{
-			Time:   &msgTime,
-			Ran1:   proto.Int64(758330138),
-			Ran2:   proto.Int64(2480149246),
-			Const1: proto.Int64(1167238020),
-			Const2: proto.Int64(3913056418),
-			Const3: proto.Int64(0x1D),
+			Time:   msgTime,
+			Ran1:   758330138,
+			Ran2:   2480149246,
+			Const1: 1167238020,
+			Const2: 3913056418,
+			Const3: 0x1D,
 		})
 	}
 	req := &msg.GetMessageRequest{
-		SyncFlag:           &flag,
+		SyncFlag:           flag,
 		SyncCookie:         cook,
-		LatestRambleNumber: proto.Int32(20),
-		OtherRambleNumber:  proto.Int32(3),
-		OnlineSyncFlag:     proto.Int32(1),
-		ContextFlag:        proto.Int32(1),
-		MsgReqType:         proto.Int32(1),
+		LatestRambleNumber: 20,
+		OtherRambleNumber:  3,
+		OnlineSyncFlag:     1,
+		ContextFlag:        1,
+		MsgReqType:         1,
 		PubaccountCookie:   []byte{},
 		MsgCtrlBuf:         []byte{},
 		ServerBuf:          []byte{},
@@ -628,24 +620,24 @@ func (c *QQClient) buildFriendSendingPacket(target int64, msgSeq, r, pkgNum, pkg
 		}
 	}
 	req := &msg.SendMessageRequest{
-		RoutingHead: &msg.RoutingHead{C2C: &msg.C2C{ToUin: &target}},
-		ContentHead: &msg.ContentHead{PkgNum: &pkgNum, PkgIndex: &pkgIndex, DivSeq: &pkgDiv},
+		RoutingHead: &msg.RoutingHead{C2C: &msg.C2C{ToUin: target}},
+		ContentHead: &msg.ContentHead{PkgNum: pkgNum, PkgIndex: pkgIndex, DivSeq: pkgDiv},
 		MsgBody: &msg.MessageBody{
 			RichText: &msg.RichText{
 				Elems: message.ToProtoElems(m, false),
 				Ptt:   ptt,
 			},
 		},
-		MsgSeq:  &msgSeq,
-		MsgRand: &r,
+		MsgSeq:  msgSeq,
+		MsgRand: r,
 		SyncCookie: func() []byte {
 			cookie := &msg.SyncCookie{
-				Time:   &time,
-				Ran1:   proto.Int64(rand.Int63()),
-				Ran2:   proto.Int64(rand.Int63()),
-				Const1: &syncConst1,
-				Const2: &syncConst2,
-				Const3: proto.Int64(0x1d),
+				Time:   time,
+				Ran1:   rand.Int63(),
+				Ran2:   rand.Int63(),
+				Const1: syncConst1,
+				Const2: syncConst2,
+				Const3: 0x1d,
 			}
 			b, _ := proto.Marshal(cookie)
 			return b
@@ -661,25 +653,25 @@ func (c *QQClient) buildTempSendingPacket(groupUin, target int64, msgSeq, r int3
 	seq := c.nextSeq()
 	req := &msg.SendMessageRequest{
 		RoutingHead: &msg.RoutingHead{GrpTmp: &msg.GrpTmp{
-			GroupUin: &groupUin,
-			ToUin:    &target,
+			GroupUin: groupUin,
+			ToUin:    target,
 		}},
-		ContentHead: &msg.ContentHead{PkgNum: proto.Int32(1)},
+		ContentHead: &msg.ContentHead{PkgNum: 1},
 		MsgBody: &msg.MessageBody{
 			RichText: &msg.RichText{
 				Elems: message.ToProtoElems(m.Elements, false),
 			},
 		},
-		MsgSeq:  &msgSeq,
-		MsgRand: &r,
+		MsgSeq:  msgSeq,
+		MsgRand: r,
 		SyncCookie: func() []byte {
 			cookie := &msg.SyncCookie{
-				Time:   &time,
-				Ran1:   proto.Int64(rand.Int63()),
-				Ran2:   proto.Int64(rand.Int63()),
-				Const1: &syncConst1,
-				Const2: &syncConst2,
-				Const3: proto.Int64(0x1d),
+				Time:   time,
+				Ran1:   rand.Int63(),
+				Ran2:   rand.Int63(),
+				Const1: syncConst1,
+				Const2: syncConst2,
+				Const3: 0x1d,
 			}
 			b, _ := proto.Marshal(cookie)
 			return b
@@ -837,13 +829,13 @@ func (c *QQClient) buildEditGroupTagPacket(groupCode, memberUin int64, newTag st
 func (c *QQClient) buildEditSpecialTitlePacket(groupCode, memberUin int64, newTitle string) (uint16, []byte) {
 	seq := c.nextSeq()
 	body := &oidb.D8FCReqBody{
-		GroupCode: &groupCode,
+		GroupCode: groupCode,
 		MemLevelInfo: []*oidb.D8FCMemberInfo{
 			{
-				Uin:                    &memberUin,
+				Uin:                    memberUin,
 				UinName:                []byte(newTitle),
 				SpecialTitle:           []byte(newTitle),
-				SpecialTitleExpireTime: proto.Int32(-1),
+				SpecialTitleExpireTime: -1,
 			},
 		},
 	}

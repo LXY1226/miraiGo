@@ -9,8 +9,8 @@ import (
 	"github.com/Mrs4s/MiraiGo/client/pb/multimsg"
 	"github.com/Mrs4s/MiraiGo/protocol/packets"
 	"github.com/Mrs4s/MiraiGo/utils"
+	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
-	"google.golang.org/protobuf/proto"
 )
 
 func init() {
