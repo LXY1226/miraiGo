@@ -137,7 +137,7 @@ var sumTable = [0x10]uint32{
 //go:nosplit
 func (t *TEA) encode(src, dst []byte) {
 	v0, v1 := unpack(src)
-	for i := 0; i < 0x10; i++ {
+	for i := 0; i <= 16; i++ {
 		v0 += ((v1 << 4) + t.key[0]) ^ (v1 + sumTable[i]) ^ ((v1 >> 5) + t.key[1])
 		v1 += ((v0 << 4) + t.key[2]) ^ (v0 + sumTable[i]) ^ ((v0 >> 5) + t.key[3])
 	}
@@ -148,7 +148,7 @@ func (t *TEA) encode(src, dst []byte) {
 //go:nosplit
 func (t *TEA) decode(src, dst []byte) {
 	v0, v1 := unpack(src)
-	for i := 0xf; i >= 0; i-- {
+	for i := 16; i >= 0; i-- {
 		v1 -= ((v0 << 4) + t.key[2]) ^ (v0 + sumTable[i]) ^ ((v0 >> 5) + t.key[3])
 		v0 -= ((v1 << 4) + t.key[0]) ^ (v1 + sumTable[i]) ^ ((v1 >> 5) + t.key[1])
 	}
